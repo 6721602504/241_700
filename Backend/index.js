@@ -60,6 +60,9 @@ const bodyParser = require('body-parser');
 const mysql = require('mysql2/promise');
 const app = express();
 const port = 8000;
+const cors=require ('cors');
+
+app.use(cors());
 
 app.use(bodyParser.json());
 
