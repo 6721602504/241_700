@@ -1,53 +1,57 @@
-const BASE_URL = "http://localhost:8000";
-let mode = 'CREATE' //เพิ่มข้อมูลใหม่ 
-let selectdId = "";
-window.onload = async () =>{
+const BASE_URL = 'http://localhost:8000';
+
+let mode = 'CREATE';
+let selectdId = '';
+
+window.onload = async () => {
     const urlParams = new URLSearchParams(window.location.search);
-    const id = urlParams.get("id");
-    console.log("id",id);
-    if(id){
-        mode = "EDIT";
+    const id = urlParams.get('id');
+    console.log('id',id);
+    if (id) {
+        mode = 'EDIT';
         selectdId = id;
-        //1. ดึงข้อมูล user เก่ามาเเสดง
-            try{
-                const response = await axios.get(`${BASE_URL}/users/${id}`);
-                console.log("response", response.data);
-                const user = response.data
-                //2. จะนำข้อมูล user ที่ได้มาเเสดงในฟอร์ม เพื่อให้ผู้ใช้เเก้ไชช้อมูล
-                 let firstNameDOM = document.querySelector('input[name=firstname]');
-                let lastNameDOM = document.querySelector('input[name=lastname]');
-                let ageDOM = document.querySelector('input[name=age]');
-                let descriptionDOM = document.querySelector('textarea[name=description]');
 
-                firstNameDOM.value = user.firstname;
-                lastNameDom.value = user.lastname;
-                ageDom.value = user.age;
-                descriptionDOM.value = user.description;
+        //1.ดึงข้อมูล user เก่าออกมาแสดง
+        try{
+            const response = await axios.get(`${BASE_URL}/users/${id}`);
+            console.log('response',response.data);
+            const user = response.data
 
-                let genderDOM = document.querySelectorAll('input[name=gender]');
-                let interestDOMs = document.querySelectorAll('input[name=interests]');
+            //2.จะนำข้อมูล user ที่ได้มาแสดงในฟอร์ม เพื่อให้ผู้ใช้แก้ไข
+            let firstNameDOM = document.querySelector('input[name=firstname]');
+            let lastNameDOM = document.querySelector('input[name=lastname]');
+            let ageDOM = document.querySelector('input[name=age]');
+            let descriptionDOM = document.querySelector('textarea[name=description]');
 
-                for(let i = 0; i< genderDOMs.length; i++){
-                    if (genderDOMs[i].value == user.gender){
-                        genderDOMs[i].checked = true;
-                    }
+            firstNameDOM.value = user.firstname;
+            lastNameDOM.value = user.lastname;
+            ageDOM.value = user.age;
+            descriptionDOM.value = user.description;
+
+            let genderDOMs = document.querySelectorAll('input[name=gender]');
+            let interestDOMs = document.querySelectorAll('input[name=interests]');
+
+            for (let i = 0; i < genderDOMs.length; i++) {
+                if (genderDOMs[i].value == user.gender) {
+                    genderDOMs[i].checked = true;
                 }
-                for(let i = 0;i< interestDOMs.length; i++){
-                    if(user.interests.includes(interestDOMs[i].valuse)){
-                        interestDOMs[i].cheched = true;
-                    }
-                }
-                
-            }catch (error){
-                console.log("error",error)
             }
+
+            for (let i = 0; i < interestDOMs.length; i++) {
+                if (user.interests.includes(interestDOMs[i].value)) {
+                    interestDOMs[i].checked = true;
+                }
+            }
+        } catch (error) {
+            console.log('error', error);
+        }
+
     }
 }
-
 const validateData = (userData) => {
     let errors = [];
     if (!userData.firstName) {
-        errors.push('กรุณากรอกชื่อ');
+        errors.push('กรุณากรอกชื่อจริง');
     }
     if (!userData.lastName) {
         errors.push('กรุณากรอกนามสกุล');
@@ -56,16 +60,17 @@ const validateData = (userData) => {
         errors.push('กรุณากรอกอายุ');
     }
     if (!userData.gender) {
-        errors.push('กรุณาเลือกเพศ');
+        errors.push('กรุณากรอกเพศ');
     }
     if (!userData.interests) {
-        errors.push('กรุณาเลือกงานอดิเรก');
+        errors.push('กรุณากรอกงานอดิเรก');
     }
     if (!userData.description) {
         errors.push('กรุณากรอกคำอธิบาย');
     }
     return errors;
 }
+
 const submitData = async () => {
     let firstNameDOM = document.querySelector('input[name=firstname]');
     let lastNameDOM = document.querySelector('input[name=lastname]');
@@ -92,7 +97,8 @@ const submitData = async () => {
             description: descriptionDOM.value,
             interests: interest
         }
-        console.log('submitData', userData);
+
+       console.log('submitData', userData);
 
         const errors = validateData(userData);
         if (errors.length > 0) {
@@ -102,41 +108,36 @@ const submitData = async () => {
             }
         }
 
-        if (mode== "CREATE"){
+        if (mode == 'CREATE') {
             const response = await axios.post(`${BASE_URL}/users`, userData);
-            console.log("response", response.data);
-        }else{
-            const response = await axios.put(`${BASE_URL}/users`, userData);
-            message = "เเก้ไขข้อมูลสำเร็จ";
-            console.log("response", response.data);
+            console.log('response', response.data)
+        } else {
+            const response = await axios.put(`${BASE_URL}/users/${selectdId}`, userData);
+            message = 'แก้ไขข้อมูลสำเร็จ';
+            console.log('response', response.data)
         }
+        
         messageDOM.innerText = message;
-        messageDOM.className = "message susscess";
+        messageDOM.className = 'message success';
 
-        const response = await axios.post(`${BASE_URL}/users`, userData);
-        console.log('response', response);
-        messageDOM.innerText = "บันทึกข้อมูลสำเร็จ";
-        messageDOM.className = "message success";
     } catch (error) {
-        console.log('Error Message:', error.message);
-        console.log('Error Details:', error.errors);
-
+        console.log('error message', error.message);
+        console.log('error', error.errors);
         if (error.response) {
-        console.error('Error response:', error.response);
-        error.message = error.response.data.message
-        error.errors = error.response.data.errors
+            console.log('Error response: ', error.response);
+            error.message = error.response.data.message
+            error.errors = error.response.data.errors
         }
-        let htmlData = '<div>'
-        htmlData += `<div>` + error.message + `</div>`;
+        let htmlData = '<div>';
+        htmlData += `<div> ${error.message} </div>`;
         htmlData += '<ul>';
         for (let i = 0; i < error.errors.length; i++) {
-            htmlData += `<li>` + error.errors[i] + `</li>`;
+            htmlData += `<li>${error.errors[i]}</li >`;
         }
         htmlData += '</ul>';
-        htmlData += '<div>';
-
-
+        htmlData += '</div>';
         messageDOM.innerHTML = htmlData;
-        messageDOM.className = "message danger";
+        //messageDOM.innerHTML = 'เกิดข้อผิดพลาดในการบันทึกข้อมูล';
+        messageDOM.className = 'message danger';
     }
-    }
+}
