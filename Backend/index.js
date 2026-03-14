@@ -57,18 +57,14 @@ server.listen(port, host, () => {
 
 const express = require('express');
 const bodyParser = require('body-parser');
-const mysql = require('mysql2/promise');
-const app = express();
+const mysql = require('mysql2/promise')
+const cors = require('cors')
 const port = 8000;
-const cors=require ('cors');
-
+const app = express();
+app.use(bodyParser.json());
 app.use(cors());
 
-app.use(bodyParser.json());
-
-let users = []
-let counter = 1;
-let conn = null
+let conn = null;
 
 const initMySQL = async () => {
     conn = await mysql.createConnection({
@@ -78,18 +74,19 @@ const initMySQL = async () => {
         database: 'webdb',
         port: 8700
     });
+    console.log('Connected to MySQL database');
 }
 
-//path = GET /users สำหรับด get ข้อมูล users ทั้งหมด
+//path = GET /users สำหรับดึงข้อมูล users ทั้งหมด
 app.get('/users', async (req, res) => {
-    const results = await conn.query('SELECT * FROM users')
+    const results = await conn.query('SELECT * FROM users');
     res.json(results[0]);
 });
 
 const validateData = (userData) => {
     let errors = [];
     if (!userData.firstName) {
-        errors.push('กรุณากรอกชื่อจริง');
+        errors.push('กรุณากรอกชื่อ');
     }
     if (!userData.lastName) {
         errors.push('กรุณากรอกนามสกุล');
@@ -98,10 +95,10 @@ const validateData = (userData) => {
         errors.push('กรุณากรอกอายุ');
     }
     if (!userData.gender) {
-        errors.push('กรุณากรอกเพศ');
+        errors.push('กรุณาเลือกเพศ');
     }
     if (!userData.interests) {
-        errors.push('กรุณากรอกงานอดิเรก');
+        errors.push('กรุณาเลือกงานอดิเรก');
     }
     if (!userData.description) {
         errors.push('กรุณากรอกคำอธิบาย');
@@ -116,39 +113,38 @@ app.post('/users', async (req, res) => {
         const errors = validateData(user);
         if (errors.length > 0){
             throw{
-                message: 'กรุณากรอกข้อมูลให้ครบถ้วน',
-                errors: errors 
+                message: "กรุณากรอกข้อมูลให้ครบถ้วน",
+                errors: errors
             }
         }
-        const results = await conn.query('INSERT INTO users SET ?', user);
-        console.log('results:', results);
+        const results = await conn.query("INSERT INTO users SET ?",user);
+        console.log("results:",results);
         res.json({
-            message: 'User created successfully',
+            message: "User added succesfully",
             data: results[0]
-        })
+        });
     } catch (error) {
-        const errorMessage = error.message || 'Error adding user';
+        const errorMessage = error.message || "Error aading user";
         const errors = error.errors || [];
         console.error('Error inserting user:', error);
-        res.status(500).json({
-            message: 'errorMessage',
-            error: error.message
+        res.status(500).json({ 
+            message: errorMessage,
+            errors: errors
         });
     }
-});
+})
 
-// path GET /users/:id สำหรับด get ข้อมูล user ที่มี id ตรงกับที่ส่งมา
+//path = GET /users/:id สำหรับดึงข้อมูล user ตาม id 
 app.get('/users/:id', async (req, res) => {
     try {
-        let id = req.params.id
-        const results = await conn.query('SELECT * FROM users WHERE id = ?', id)
-        if (results[0].length == 0) {
+        let id = req.params.id;
+        const results = await conn.query('SELECT * FROM users WHERE id = ?', id);
+        if (result[0].length === 0) {
             throw { statusCode: 404, message: 'User not found' };
         }
         res.json(results[0][0]);
-    }
-    catch (error) {
-        console.error('Error fetching user:', error.message);
+    } catch (error) {
+        console.error('Error fetching user:', error);
         let statusCode = error.statusCode || 500;
         res.status(statusCode).json({
             message: 'Error fetching user',
@@ -156,8 +152,6 @@ app.get('/users/:id', async (req, res) => {
         });
     }
 })
-
-
 
 //PUT /users/:id สำหรับแก้ไขข้อมูล user ที่มี id ตรงกับที่ส่งมา
 app.put('/users/:id', async (req, res) => {
@@ -174,12 +168,8 @@ app.put('/users/:id', async (req, res) => {
         });
     }
     catch (error) {
-        console.error('Error updating user:', error.message);
-        let statusCode = error.statusCode || 500;
-        res.status(statusCode).json({
-            message: 'Error updating user',
-            error: error.message
-        });
+        console.error('Error updating user:', error);
+        res.status(500).json({ message: 'Error updating user' });
     }
 })
 
@@ -188,24 +178,19 @@ app.delete('/users/:id', async (req, res) => {
     try {
         let id = req.params.id
         const results = await conn.query('DELETE FROM users WHERE id = ?', id)
-        if (results[0].affectedRows == 0) {
-            throw { statusCode: 404, message: 'User not found' };
-        }   
         res.json({
-            message: 'User deleted successfully'
+            message: 'User deleted successfully',
+            data: results[0]
         });
     }
     catch (error) {
-        console.error('Error deleting user:', error.message);
+        console.error('Error deleting user:', error);
         let statusCode = error.statusCode || 500;
-        res.status(statusCode).json({
-            message: 'Error deleting user',
-            error: error.message
-        });
+        res.status(statusCode).json({ message: 'Error deleting user' });
     }
 })
 
 app.listen(port, async () => {
     await initMySQL();
-    console.log(`Server is running on port ${port}`);
+    console.log(`Server is running on http://localhost:${port}`);
 });

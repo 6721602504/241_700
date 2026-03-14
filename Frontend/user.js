@@ -1,6 +1,6 @@
-//1. load user ทั้งหมด จาก api http://localhost:8000
+//1. load user ทั้งหมด จาก api http://localhost:8000/users
 
-////2. นำ user ที่นำมาเเสดงในหน้าเว็บ ใน HTML
+//2. นำ user ที่ได้มาเเสดงในหน้าเว็บ ใน html
 const BASE_URL = "http://localhost:8000";
 window.onload = async () => {
     await loadData();
@@ -13,9 +13,9 @@ const loadData = async () => {
     let htmlData = '<div>';
     for (let i = 0; i < response.data.length; i++) {
         let user = response.data[i];
-        htmlData += ` <div>
-        ${user.firstname} ${user.lastname}
-        <button>Edit</button>
+        htmlData += `<div>
+        ${user.id}${user.firstname} ${user.lastname}${user.gender}
+        <a href= "index.html?id=${user.id}"><button>Edit</button></a>
         <button class='delete' data-id='${user.id}'>Delete</button>
         </div>`
     }
